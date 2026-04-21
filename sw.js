@@ -3,8 +3,6 @@ const CACHE_NAME = 'futbol-live-v1';
 const urlsToCache = [
     './',
     './index.html',
-    './style.css',
-    './app.js',
     './manifest.json'
 ];
 
