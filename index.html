@@ -814,10 +814,21 @@ function formatDate(utcDate) {
 }
 
 // ── Fetch ────────────────────────────────────────────────
+function getDateRange(days) {
+    const pad = n => String(n).padStart(2, '0');
+    const today = new Date();
+    const end = new Date(today);
+    end.setDate(today.getDate() + days);
+    const from = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
+    const to = `${end.getFullYear()}${pad(end.getMonth()+1)}${pad(end.getDate())}`;
+    return `${from}-${to}`;
+}
+
 async function fetchAllLeagues() {
+    const range = getDateRange(7);
     return Promise.all(LEAGUES.map(async league => {
         try {
-            const res = await fetch(`${ESPN_BASE}/${league.slug}/scoreboard`);
+            const res = await fetch(`${ESPN_BASE}/${league.slug}/scoreboard?dates=${range}`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return { league, data: await res.json() };
         } catch (e) {
