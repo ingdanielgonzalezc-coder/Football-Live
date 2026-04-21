@@ -1,5 +1,5 @@
 // Service Worker for Fútbol Live PWA
-const CACHE_NAME = 'futbol-live-v2';
+const CACHE_NAME = 'futbol-live-v3';
 const urlsToCache = [
     './',
     './index.html',
