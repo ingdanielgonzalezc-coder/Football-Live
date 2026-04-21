@@ -814,28 +814,32 @@ function formatDate(utcDate) {
 }
 
 // ── Fetch ────────────────────────────────────────────────
-function getDateRange(days) {
+function getNextDates(days) {
     const pad = n => String(n).padStart(2, '0');
-    const today = new Date();
-    const end = new Date(today);
-    end.setDate(today.getDate() + days);
-    const from = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
-    const to = `${end.getFullYear()}${pad(end.getMonth()+1)}${pad(end.getDate())}`;
-    return `${from}-${to}`;
+    const dates = [];
+    for (let i = 0; i < days; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        dates.push(`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`);
+    }
+    return dates;
 }
 
 async function fetchAllLeagues() {
-    const range = getDateRange(7);
-    return Promise.all(LEAGUES.map(async league => {
-        try {
-            const res = await fetch(`${ESPN_BASE}/${league.slug}/scoreboard?dates=${range}&limit=200`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return { league, data: await res.json() };
-        } catch (e) {
-            console.warn(`[${league.name}]`, e.message);
-            return { league, data: null };
-        }
-    }));
+    const dates = getNextDates(7);
+    // Fetch each league × each day individually, then merge
+    const tasks = [];
+    LEAGUES.forEach(league => {
+        dates.forEach(date => {
+            tasks.push(
+                fetch(`${ESPN_BASE}/${league.slug}/scoreboard?dates=${date}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => ({ league, data }))
+                    .catch(() => ({ league, data: null }))
+            );
+        });
+    });
+    return Promise.all(tasks);
 }
 
 function parseESPNMatches(leagueInfo, espnData) {
@@ -960,10 +964,13 @@ async function loadData() {
     try {
         const results = await fetchAllLeagues();
         const allLive = [], allUpcoming = [];
+        const seen = new Set();
 
         results.forEach(({ league, data }) => {
             if (!data) return;
             parseESPNMatches(league, data).forEach(m => {
+                if (seen.has(m.id)) return;
+                seen.add(m.id);
                 if (m.isLive)     allLive.push(m);
                 else if (m.isUpcoming) allUpcoming.push(m);
             });
