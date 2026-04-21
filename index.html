@@ -873,7 +873,7 @@ function createMatchCard(match) {
 }
 
 // Group matches by league and render
-function renderMatches(container, matches, emptyMsg, emptyIcon = '📭') {
+function renderMatches(container, matches, emptyMsg, emptyIcon = '⚽') {
     container.innerHTML = '';
 
     if (!matches.length) {
@@ -886,7 +886,7 @@ function renderMatches(container, matches, emptyMsg, emptyIcon = '📭') {
         return;
     }
 
-    // Group by league
+    // Agrupar por liga
     const groups = {};
     matches.forEach(m => {
         const key = m.league;
